@@ -118,16 +118,15 @@ class mul_clzTest extends AnyFlatSpec with ChiselScalatestTester {
   behavior.of("Single Cycle CPU")
   it should "multiply two numbers with counting leading zeros" in {
     test(new TestTopModule("mul_clz.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
-      for (i <- 1 to 500) {
+      for (i <- 1 to 5000) {
         c.clock.step()
         c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
       }
-      c.io.mem_debug_read_address.poke(8.U)
-      c.clock.step()
-      c.io.mem_debug_read_data.expect(0x24.U) //36
-      c.io.mem_debug_read_address.poke(12.U)
-      c.clock.step()
-      c.io.mem_debug_read_data.expect(0x0.U) //0
+      c.io.regs_debug_read_address.poke(30.U) // t5
+      c.io.regs_debug_read_data.expect(0x3.U)
+
+      c.io.regs_debug_read_address.poke(18.U) // s2
+      c.io.regs_debug_read_data.expect(0x1234540a.U)
     }
   }
 }
