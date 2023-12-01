@@ -1,9 +1,6 @@
 # Provide program starting address to linker
 .global _start
 
-/* newlib system calls */
-.set SYSEXIT,  93
-.set SYSWRITE, 64
 
 .data
     data_1: .word 0x12345678
@@ -26,7 +23,7 @@ _start:
     slt t0, t5, t6 # if A's zero less than B's, t0=1
     li a0, 32
     mv  a4, a3
-    bne t0, zero, start_mul
+    jal start_mul
     
 start_mul:
     #reset
@@ -40,7 +37,8 @@ start_mul:
     li t2, 0    
     li s2, 0        #s2: high 32 of number
     li s3, 0        #s3: low 32 of number
-    li s4, 0        #used to check how many bit should shift   
+    li s4, 0        #used to check how many bit should shift
+    jal int_mul
 
 int_mul:
     slt t1, s4, a0
@@ -53,60 +51,6 @@ int_mul:
     sub t2, t2, s4
     srl s6, s0, t2             #s0 is A, S6 the high bit i want
     add s7, s3, s5             #s7 is 32_low + low bit i want
-
-    sltu t3, s7, s3
-    mv s3, s7
-    beq t3, zero, no_overflow
-    add s2, s2, s6
-    addi s2, s2, 1
-    addi s4, s4 ,1
-
-#   Loop unrolling 1
-
-    srl t0, s1, s4
-    andi t0, t0, 0x00000001       
-    beq t0, zero, skip            
-    sll s5,s0,s4                  
-    li t2, 32
-    sub t2, t2, s4
-    srl s6, s0, t2             
-    add s7, s3, s5             
-
-    sltu t3, s7, s3
-    mv s3, s7
-    beq t3, zero, no_overflow
-    add s2, s2, s6
-    addi s2, s2, 1
-    addi s4, s4 ,1
-
-#   Loop unrolling 2
-
-    srl t0, s1, s4
-    andi t0, t0, 0x00000001       
-    beq t0, zero, skip            
-    sll s5,s0,s4                  
-    li t2, 32
-    sub t2, t2, s4
-    srl s6, s0, t2             
-    add s7, s3, s5             
-
-    sltu t3, s7, s3
-    mv s3, s7
-    beq t3, zero, no_overflow
-    add s2, s2, s6
-    addi s2, s2, 1
-    addi s4, s4 ,1
-
-#   Loop unrolling 3
-
-    srl t0, s1, s4
-    andi t0, t0, 0x00000001       
-    beq t0, zero, skip            
-    sll s5,s0,s4                  
-    li t2, 32
-    sub t2, t2, s4
-    srl s6, s0, t2             
-    add s7, s3, s5             
 
     sltu t3, s7, s3
     mv s3, s7
@@ -162,7 +106,4 @@ CLZ:
     ret
 
 exit:
-    li a0, 0
-    li a7, SYSEXIT
-    ecall
-
+    j exit
